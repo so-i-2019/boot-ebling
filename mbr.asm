@@ -1,8 +1,9 @@
-	;; mbr.asm - A simple x86 bootloader example.
-	;;
-	;; In worship to the seven hacker gods and for the honor 
-	;; of source code realm, we hereby humbly offer our sacred 
-	;; "Hello World" sacrifice. May our code remain bugless.
+
+	;; Copyright (c) 2019 - Lucas X E Pereira <lucasebling@usp.br>
+	;;			Matheus S Populim <matheusspopulim@usp.br>
+	;; This is free software and distributed under GNU GPL vr.3. Please 
+	;; refer to the companion file LICENSING or to the online documentation
+	;; at https://www.gnu.org/licenses/gpl-3.0.txt for further information.
 
 	
  
