@@ -1,4 +1,10 @@
-                    GNU GENERAL PUBLIC LICENSE
+  ;; Copyright (c) 2019 - Lucas X E Pereira <lucasebling@usp.br>
+	;;			                Matheus S Populim <matheusspopulim@usp.br>
+	;; This is free software and distributed under GNU GPL vr.3. Please 
+	;; refer to the companion file LICENSING or to the online documentation
+	;; at https://www.gnu.org/licenses/gpl-3.0.txt for further information.
+                  
+                  GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
  Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
