@@ -5,70 +5,193 @@
 	;; "Hello World" sacrifice. May our code remain bugless.
 
 	
+ 
 	org 0x7c00		; Our load address
 
+
+
+_start:
+	
+	CALL RESET	
+	CALL IMPUTWAIT	;pega imput e espera operacao
+	restart:	
+	mov al, 0x00
+	mov ah, 0x00
+	CALL Rand2	;numero aleatorio, numero de rotacoes
+	mov cl, al
+	mov dl, 0x00
+	sloop:
+		CALL RESET
+		CALL waittime	;dar um "framerate" a acao
+		CALL PrintAll   ;printa a carinha
+		cmp dl,	cl  
+		je end 
+		add dl, 0x1
+		CALL PrintJumpLine
+	jmp sloop
+
+end:				
+	
+	mov al, [state]
+	cmp al, 0x0
+	je happy
+	cmp al, 0x1
+	je sad
+
+	mov ah, 0xe
+	mov al, 0x3f
+	INT 0x10
+	CALL Barran
+	jmp realend 
+	
+	happy:
+	mov ah, 0xe
+	mov al, 0x59
+	INT 0x10
+	CALL Barran
+	jmp realend
+
+	sad:
+	mov ah, 0xe
+	mov al, 0x4e
+	INT 0x10
+	CALL Barran
+	jmp realend
+
+realend:
+	mov ah, 0x00
+	mov al, 0x00
+	CALL IMPUTWAIT
+	jmp restart
+
+IMPUTWAIT:
+	mov ah, 0x00
+	mov al, 0x00
+	INT 0x16
+
+ret 
+PrintAll:
+	
 	mov ah, 0xe		; Configure BIOS teletype mode
+	mov al, 0x00
+	mov bx, 0x00		; May be 0 because org directive.
 
-	mov bx, 0		; May be 0 because org directive.
-
-loop:				; Write a 0x0-terminated ascii string
-	mov al, [here + bx]	
+	loop1:
+	mov al, [smiley1 + bx]
 	int 0x10
 	cmp al, 0x0
-	je end
-	add bx, 0x1		
-	jmp loop
+	je end1 
+	add bx, 0x1
+	jmp loop1
 
-end:				; Jump forever (same as jmp end)
-	jmp $
+	end1:
+	mov bx, 0x0
+
+	mov al, [state]
+	cmp al, 0x0 ; H -> N
+	je loop2
+
+	cmp al, 0x1 ;N-> S
+	je loop3
+
+	loop4:
+		mov al, [smiley4 + bx]
+		int 0x10
+		cmp al, 0x0
+		je end4
+		add bx, 0x1
+		jmp loop4
+	end4: 
+		mov al, 0x0
+		mov [state], al
+		jmp endend
+
+
+
+	loop3:
+		mov al, [smiley3 + bx]
+		int 0x10
+		cmp al, 0x0
+		je end2
+		add bx, 0x1
+		jmp loop3
+	end3: 
+		mov al, [state]
+		add al, 0x1
+		mov [state], al
+		jmp endend
+	
+
+	loop2:
+		mov al, [smiley2 + bx]
+		int 0x10
+		cmp al, 0x0
+		je end2
+		add bx, 0x1
+		jmp loop2
+	end2: 
+		mov al, [state]
+		add al, 0x1
+		mov [state], al
+		jmp endend
+
+	endend:
+
+ret
+
+Barran:
+	mov al, 0xa
+	int 0x10
+	mov al, 0xd
+	int 0x10
+ret
+
+Rand2:
+	rdtsc
+	AND EAX, 0xF ;valor de 0 a 16
+ret
+
+waittime:
+	mov cl, 0x06
+	mov ah, 0x86
+	INT 0x15
+ret
+
+PrintJumpLine:
+    mov ah, 0xe        ; Configure BIOS teletype mode
+    mov al, 0x00
+    mov bx, 0x11        ; May be 0 because org directive.
+
+    loopPrintJumpLine:
+        mov al, 0xa
+        int 0x10
+        mov al, 0xd
+        int 0x10
+        cmp bx, 0x0
+        je endPrintJumpLine
+        dec bx
+        jmp loopPrintJumpLine
+
+    endPrintJumpLine:
+ret
+
+RESET:
+	xor ax, ax
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+ret
+
+
 
 here:				; C-like NULL terminated string
-
-	db 'Hello world!', 0xd, 0xa, 0x0
 	
+	state db 0 ;0 -> happy 1 -> neutral 2-> sad
+	smiley1 db '    0     0   ', 0xa, 0xd,0x0
+	smiley2 db '              ', 0xa, 0xd,'    XXXXXXX   ', 0xa, 0xd,'  XX       XX ', 0xa, 0xd,'              ', 0xa, 0xd,0x0
+	smiley3 db '              ', 0xa, 0xd,'  XXXXXXXXXXX ', 0xa, 0xd,'              ', 0xa, 0xd,'              ', 0xa, 0xd,0x0
+	smiley4 db ' XX       XX ', 0xa, 0xd,'    XXXXXXX   ', 0xa, 0xd,'              ', 0xa, 0xd,'              ', 0xa, 0xd,0x0
+
 	times 510 - ($-$$) db 0	; Pad with zeros
 	dw 0xaa55		; Boot signature
-
-		
-	;; Notes (remove these comments for your code).
-	;; 
-	;; This assembly source code is written for x86 architecture in intel 
-	;; syntax and NASM  assembler dialect. It's mean to be compiled with 
-	;; NASM assembler.
-	;; 
-	;; A label (such as 'loop:') is interpreted by the prepossessesor as
-	;; the offset to (byte count at) the next command (jmp instruction, 
-	;; in this example).
-	;; 
-	;; The directive org 0x7c00 intructs the compiler to automatically
-	;; add the load address to the offset when necessary. Therefore,
-	;; 'mov al, label' virtually becomes 'mov al, label + 0x7c00'. 
-	;; 
-	;; BIOS interruption 'int 0x10' causes the execution flow to jump to 
-	;; the interruption vector table area, where there is a pre-loaded BIOS
-	;; routine capable of outputing characters to the video controller.
-	;; This interruption handler routine reads the byte at the 8-bit
-	;; register and send to the video controller. The video operation
-	;; mode (e.g. ascii character) is controlled by register ah.
-	;; After completing the operation, execution flow is returned to
-	;; the next line after 'int' instruction.
-	;;
-	;; The argument of jmp and je instructions, here, is a relative offset. 
-	;;
-	;; The line db causes the ouput of 1-byte patters at the current
-	;; position in the generated machine code. For instance, the string
-	;; 'Hello World' followed by newline and return ascii codes is inserted
-	;; in the given location.
-	;; 
-	;; The directive 'times X Y' produces a sequence of X repetitions of
-	;; of Y. The type specification 'db' means that Y is a byte (8 bits).
-	;; If it were dw, it would mean 'word', i.e. 16 bits.
-	;;
-	;; Symbol $  denotes the address of (byte count at) the current line.
-	;; Symbol $$ denotes the address of (byte count at) the start of current
-	;; section (in present case, we have only one section). Therefore, the
-	;; value ($-$$) is the current address minus the address of the
-	;; program start. We need 510 minus this amount of zeros.
-	;;
-	;; The line dw causes the output of the 2-byte pattern for the boot
-	;; signature at the current position (positions 511 and 512).
